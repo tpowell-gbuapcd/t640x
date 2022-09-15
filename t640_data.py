@@ -18,8 +18,13 @@ error = -999999999991
 
 def get_param_names(params):
     '''
-    Get names of parameters from text document, trim off unnecessary characters
-    return: params, list of names from text document
+    Get names of parameters from the header of the text document, trim off unnecessary characters
+    
+    input param: params, the header of the text file as a list split by the ',' character
+    input type: list
+    
+    return: params, list of names from text document without unecessary characters. Entries become the 
+    keys of the dictionary. 
     return type: list of strings
     '''
     
@@ -37,7 +42,16 @@ def get_param_names(params):
 
 def dict_init(params, length):
     '''
-    initialize dictionary containing all the data.
+    initialize dictionary containing all the data. Creates the required size arrays for each data parameter
+    and initializes each entry to zero.
+    
+    input param: params, the keys of the dictionary. These are the data names presented in the header
+    of the text file. 
+    input type: list
+    
+    input param: length, how many data entries there are (simply the length of the file)
+    input type: int
+    
     return: data_dict, dictionary where the keys are the names of the parameters
     return type: dictionary of arrays
     '''
@@ -50,9 +64,13 @@ def dict_init(params, length):
 
 def remove_params(raw):
     '''
-    remove indices containing time parameters from the numpy array. Return just data.
+    Remove indices containing time parameters from the numpy array. Return just data.
+    
+    input param: raw, the raw data from the text file.
+    input type: array
+    
     return: new array with only data
-    return type: ndarray
+    return type: array
     '''
     
     return np.delete(raw, [0,1])
@@ -66,8 +84,11 @@ def write_arrays(str_data):
     same time, create an array of the indices where the ' -----' string occurs,
     indicating an I/O issue with the T640.
     
+    input param: str_data, an array of strings that contain all of the data entries.
+    input type: array
+   
     return: raw_data, a 2-d array of all of the data found in the text document.
-    returnL bad_ind, a 1-d array of all of the indices where ' -----' occurs.
+    return: bad_ind, a 1-d array of all of the indices where ' -----' occurs.
     '''
     
     bad_ind = np.zeros(0)
@@ -110,6 +131,12 @@ def write_dict(params, raw):
     where the keys are the names of the parameters defined at the beginning 
     of the text document.
     
+    input param: params, the array of keys needed to sort data into the dictionary.
+    input type: array
+    
+    input param: raw, the raw data from the text file.
+    input type: array
+    
     return data, dictionary of data where keys are parameters
     rtype: dictionary
     '''
@@ -127,7 +154,16 @@ def write_dict(params, raw):
 
 def find_missing_times(time_arr):
     '''
-    For missing minute data
+    For missing minute data. Using the timestamps and a known interval, determine where 
+    there are any data gaps. 
+    
+    input param: time_arr, an array of the timestamps from the data file. 
+    input type: array
+    
+    return: missing, an array of the missing times
+    return: start_missing, an array of the beginning timestamp for a block of missing time
+    return: diff, an array of the length of the a block of missing time
+    return: dates, an array of dates that have occurrences of missing time. 
     '''
     missing = np.zeros(0, dtype=object)
     start_missing = np.zeros(0, dtype=object)
@@ -162,8 +198,25 @@ def find_missing_times(time_arr):
 
 
 def find_stuck_data(data_dict, arr):
+    '''
+    Sort throught the data and find instances where the data are "stuck" on the same values.
+    Return datasets that can be used to generate statistics on the severity of stuck data.
+    Important for assessing how badly the T640x issues are impacting data. 
+    
+    input param: data_dict, dictionary of data where keys are parameters
+    input type: dictionary
+    
+    input param: arr, array of raw data without timestamps
+    input type: array
+    
+    return: repeat_vals, array of the index of a repeating value
+    return: repeat_counts, array of the number of repeating counts (a block of repeated data) ?
+    return: running_count, array of the length of a block of repeated data
+    '''
 
-    # very slow, takes several minutes, 
+    # very slow, takes several minutes, should be cleaned up if this code is to be used 
+    # more frequently. Although, the slowness is definitely due to the machine it was
+    # written on. 
     # creates strings from each line for comparison
     count = 0
     new_count = 0
@@ -321,7 +374,7 @@ def print_stats(data_dict, bad_counts, bad_dates):
     
 def plot_stuck_times(data_dict, time, counts, diff):
     
-    # this is all shit coding. I should be ashamed. But it works?
+    # this is all bad code. I should be ashamed. But it works, so good for me.
     start = data_dict['Date&Time(Local)'][0].date()
     end = data_dict['Date&Time(Local)'][-1].date()
     
